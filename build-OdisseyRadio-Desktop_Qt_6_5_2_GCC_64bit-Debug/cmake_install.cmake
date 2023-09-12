@@ -43,21 +43,21 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio"
+         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/ulisesmz/Escritorio/OdyRadio/OdisseyRadio/build-OdisseyRadio-Desktop_Qt_6_5_2_GCC_64bit-Debug/OdisseyRadio")
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/examples/multimedia/player" TYPE EXECUTABLE FILES "/home/ulisesmz/Escritorio/OdyRadio/OdisseyRadio/build-OdisseyRadio-Desktop_Qt_6_5_2_GCC_64bit-Debug/OdisseyRadio")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio")
     file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio"
+         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio"
          OLD_RPATH "/home/ulisesmz/Qt/6.5.2/gcc_64/lib:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/OdisseyRadio")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/examples/multimedia/player/OdisseyRadio")
     endif()
   endif()
 endif()
