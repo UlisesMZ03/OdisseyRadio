@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_QML_DEBUG -DQT_MULTIMEDIA_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_MULTIMEDIA_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -Wextra -fPIC -D_REENTRANT $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++1z -Wall -Wextra -fPIC -D_REENTRANT $(DEFINES)
-INCPATH       = -I../OdisseyRadio -I. -I/usr/include/SFML -I../../../../Qt/6.5.2/gcc_64/include -I../../../../Qt/6.5.2/gcc_64/include/QtMultimedia -I../../../../Qt/6.5.2/gcc_64/include/QtWidgets -I../../../../Qt/6.5.2/gcc_64/include/QtGui -I../../../../Qt/6.5.2/gcc_64/include/QtNetwork -I../../../../Qt/6.5.2/gcc_64/include/QtCore -I. -I../../../../Qt/6.5.2/gcc_64/mkspecs/linux-g++
+INCPATH       = -I../OdisseyRadio -I. -I/usr/include/SFML -I/usr/include/taglib -I../../../../Qt/6.5.2/gcc_64/include -I../../../../Qt/6.5.2/gcc_64/include/QtWidgets -I../../../../Qt/6.5.2/gcc_64/include/QtMultimedia -I../../../../Qt/6.5.2/gcc_64/include/QtGui -I../../../../Qt/6.5.2/gcc_64/include/QtNetwork -I../../../../Qt/6.5.2/gcc_64/include/QtCore -I. -I../../../../Qt/6.5.2/gcc_64/mkspecs/linux-g++
 QMAKE         = /home/ulisesmz/Qt/6.5.2/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -40,7 +40,7 @@ DISTNAME      = OdisseyRadio1.0.0
 DISTDIR = /home/ulisesmz/Escritorio/copiarepo/OdisseyRadio/build-OdisseyRadio-Desktop_Qt_6_5_2_GCC_64bit-Debug/.tmp/OdisseyRadio1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/home/ulisesmz/Qt/6.5.2/gcc_64/lib -Wl,-rpath-link,/home/ulisesmz/Qt/6.5.2/gcc_64/lib
-LIBS          = $(SUBLIBS) -lsfml-graphics -lsfml-window -lsfml-audio -lsfml-system -lSDL2 -lmpg123 /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Multimedia.so -pthread /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Widgets.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Gui.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Network.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Core.so -lpthread -lGL   
+LIBS          = $(SUBLIBS) -lsfml-graphics -lsfml-window -lsfml-audio -lsfml-system -lSDL2 -lmpg123 -ltag /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Widgets.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Multimedia.so -pthread /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Gui.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Network.so /home/ulisesmz/Qt/6.5.2/gcc_64/lib/libQt6Core.so -lpthread -lGL   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -197,6 +197,7 @@ DIST          = ../../../../Qt/6.5.2/gcc_64/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/spec_post.prf \
+		../OdisseyRadio/.qmake.stash \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/default_pre.prf \
@@ -370,6 +371,7 @@ Makefile: ../OdisseyRadio/OdisseyRadio.pro ../../../../Qt/6.5.2/gcc_64/mkspecs/l
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/default_pre.prf \
@@ -391,8 +393,8 @@ Makefile: ../OdisseyRadio/OdisseyRadio.pro ../../../../Qt/6.5.2/gcc_64/mkspecs/l
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/yacc.prf \
 		../../../../Qt/6.5.2/gcc_64/mkspecs/features/lex.prf \
 		../OdisseyRadio/OdisseyRadio.pro \
-		../../../../Qt/6.5.2/gcc_64/lib/libQt6Multimedia.prl \
 		../../../../Qt/6.5.2/gcc_64/lib/libQt6Widgets.prl \
+		../../../../Qt/6.5.2/gcc_64/lib/libQt6Multimedia.prl \
 		../../../../Qt/6.5.2/gcc_64/lib/libQt6Gui.prl \
 		../../../../Qt/6.5.2/gcc_64/lib/libQt6Network.prl \
 		../../../../Qt/6.5.2/gcc_64/lib/libQt6Core.prl
@@ -535,6 +537,7 @@ Makefile: ../OdisseyRadio/OdisseyRadio.pro ../../../../Qt/6.5.2/gcc_64/mkspecs/l
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/qt_config.prf:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/linux-g++/qmake.conf:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/exclusive_builds.prf:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/toolchain.prf:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/default_pre.prf:
@@ -556,8 +559,8 @@ Makefile: ../OdisseyRadio/OdisseyRadio.pro ../../../../Qt/6.5.2/gcc_64/mkspecs/l
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/yacc.prf:
 ../../../../Qt/6.5.2/gcc_64/mkspecs/features/lex.prf:
 ../OdisseyRadio/OdisseyRadio.pro:
-../../../../Qt/6.5.2/gcc_64/lib/libQt6Multimedia.prl:
 ../../../../Qt/6.5.2/gcc_64/lib/libQt6Widgets.prl:
+../../../../Qt/6.5.2/gcc_64/lib/libQt6Multimedia.prl:
 ../../../../Qt/6.5.2/gcc_64/lib/libQt6Gui.prl:
 ../../../../Qt/6.5.2/gcc_64/lib/libQt6Network.prl:
 ../../../../Qt/6.5.2/gcc_64/lib/libQt6Core.prl:
@@ -772,9 +775,10 @@ moc_mainwindow.cpp: ../OdisseyRadio/mainwindow.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/qnativeinterface.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qtabwidget.h \
 		../OdisseyRadio/ReproductorMP3.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QMap \
 		moc_predefs.h \
 		../../../../Qt/6.5.2/gcc_64/libexec/moc
-	/home/ulisesmz/Qt/6.5.2/gcc_64/libexec/moc $(DEFINES) --include /home/ulisesmz/Escritorio/copiarepo/OdisseyRadio/build-OdisseyRadio-Desktop_Qt_6_5_2_GCC_64bit-Debug/moc_predefs.h -I/home/ulisesmz/Qt/6.5.2/gcc_64/mkspecs/linux-g++ -I/home/ulisesmz/Escritorio/copiarepo/OdisseyRadio/OdisseyRadio -I/usr/include/SFML -I/home/ulisesmz/Qt/6.5.2/gcc_64/include -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtMultimedia -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtWidgets -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtGui -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtNetwork -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtCore -I. -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../OdisseyRadio/mainwindow.h -o moc_mainwindow.cpp
+	/home/ulisesmz/Qt/6.5.2/gcc_64/libexec/moc $(DEFINES) --include /home/ulisesmz/Escritorio/copiarepo/OdisseyRadio/build-OdisseyRadio-Desktop_Qt_6_5_2_GCC_64bit-Debug/moc_predefs.h -I/home/ulisesmz/Qt/6.5.2/gcc_64/mkspecs/linux-g++ -I/home/ulisesmz/Escritorio/copiarepo/OdisseyRadio/OdisseyRadio -I/usr/include/SFML -I/usr/include/taglib -I/home/ulisesmz/Qt/6.5.2/gcc_64/include -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtWidgets -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtMultimedia -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtGui -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtNetwork -I/home/ulisesmz/Qt/6.5.2/gcc_64/include/QtCore -I. -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../OdisseyRadio/mainwindow.h -o moc_mainwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -976,7 +980,8 @@ main.o: ../OdisseyRadio/main.cpp ../../../../Qt/6.5.2/gcc_64/include/QtWidgets/Q
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/QSizeF \
 		../../../../Qt/6.5.2/gcc_64/include/QtGui/QTransform \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qtabwidget.h \
-		../OdisseyRadio/ReproductorMP3.h
+		../OdisseyRadio/ReproductorMP3.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QMap
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../OdisseyRadio/main.cpp
 
 mainwindow.o: ../OdisseyRadio/mainwindow.cpp ../OdisseyRadio/mainwindow.h \
@@ -1139,6 +1144,7 @@ mainwindow.o: ../OdisseyRadio/mainwindow.cpp ../OdisseyRadio/mainwindow.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/qnativeinterface.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qtabwidget.h \
 		../OdisseyRadio/ReproductorMP3.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QMap \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/QApplication \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qapplication.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/qcoreapplication.h \
@@ -1206,7 +1212,14 @@ mainwindow.o: ../OdisseyRadio/mainwindow.cpp ../OdisseyRadio/mainwindow.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qdialog.h \
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/QTimer \
 		../../../../Qt/6.5.2/gcc_64/include/QtCore/qtimer.h \
-		../../../../Qt/6.5.2/gcc_64/include/QtCore/qbasictimer.h
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/qbasictimer.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QDirIterator \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/qdiriterator.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QFile \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QTextStream \
+		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/QMessageBox \
+		../../../../Qt/6.5.2/gcc_64/include/QtWidgets/qmessagebox.h \
+		../../../../Qt/6.5.2/gcc_64/include/QtCore/QRegularExpression
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../OdisseyRadio/mainwindow.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 

@@ -1,6 +1,6 @@
 QT       += core gui
 
-QT       += multimedia
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -9,6 +9,9 @@ INCLUDEPATH += /usr/include/SFML
 LIBS += -lsfml-graphics -lsfml-window -lsfml-system
 LIBS += -lsfml-audio -lsfml-system
 LIBS += -lSDL2 -lmpg123
+
+LIBS += -ltag
+INCLUDEPATH += /usr/include/taglib
 
 QT += widgets multimedia
 

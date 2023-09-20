@@ -12,6 +12,7 @@ public:
     bool cargarCancion(const char* archivo);
     void reproducir();
     void pausar();
+    void reanudar();
     void detener();
 
 private:
