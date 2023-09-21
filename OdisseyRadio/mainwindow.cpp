@@ -18,6 +18,10 @@
 #include <QMap>  // Para almacenar los datos de las canciones
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <sys/resource.h> // Para getrusage
+#include <unistd.h>       // Para sysconf
+#include <QDebug>         // Para imprimir información de depuración
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -29,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString selectedSongPath;
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-    cargarDatosCSV();
+
     QGridLayout *mainLayout = new QGridLayout(centralWidget);
 
     QListWidget *leftListViewFolders = new QListWidget(centralWidget);
@@ -42,25 +46,47 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addWidget(loadFolderButton, 0, 0, 1, 1);
 
     connect(loadFolderButton, &QPushButton::clicked, this, [=]() {
-        QString folderPath = QFileDialog::getExistingDirectory(this, "Seleccionar Carpeta", QDir::homePath());
+        folderPath = QFileDialog::getExistingDirectory(this, "Seleccionar Carpeta", QDir::homePath());
         if (!folderPath.isEmpty()) {
             leftListViewFolders->addItem(folderPath);
+            cargarDatosCSV(folderPath);
+            // Obtén los géneros únicos
+            QSet<QString> generosUnicos = obtenerGenerosUnicos();
+
+            // Limpia el QListView de la izquierda
+            leftListViewFolders->clear();
+
+            // Agrega los géneros al QListView de la izquierda
+            for (const QString &genero : generosUnicos) {
+                leftListViewFolders->addItem(genero);
+            }
         }
     });
+
 
     // En la función para cargar la carpeta de canciones
     connect(leftListViewFolders, &QListWidget::itemSelectionChanged, this, [=]() {
-        rightListViewSongs->clear();
+        rightListViewSongs->clear(); // Limpia las canciones anteriores
+
         QListWidgetItem *selectedFolderItem = leftListViewFolders->currentItem();
         if (selectedFolderItem) {
-            QString folderPath = selectedFolderItem->text();
+            QString artistName = selectedFolderItem->text(); // Nombre del artista seleccionado
 
-            // Función para obtener todas las canciones de las subcarpetas
-            QStringList allSongFiles = getAllSongFiles(folderPath);
+            // Busca las canciones del artista en el mapa artistSongs
+            if (artistSongs.contains(artistName)) {
+                // Obtén la lista de canciones del artista
+                QList<SongInfo> songs = artistSongs.value(artistName);
 
-            rightListViewSongs->addItems(allSongFiles);
+                // Agrega las canciones al QListWidget de la derecha
+                for (const SongInfo &song : songs) {
+                    QString songName = song.name;
+                    rightListViewSongs->addItem(songName);
+
+                }
+            }
         }
     });
+
 
 // ...
     connect(rightListViewSongs, &QListWidget::itemSelectionChanged, this, [=]() {
@@ -69,9 +95,9 @@ MainWindow::MainWindow(QWidget *parent)
         if (selectedSongItem) {
             currentSongIndex = rightListViewSongs->row(selectedSongItem);
             QString selectedSongPath = selectedSongItem->text();
-
-            // Obtén el nombre de la canción desde la ruta completa
-            QString selectedSongName = QFileInfo(selectedSongPath).fileName();
+            qDebug() << "Ruta de la canción seleccionada: " << selectedSongPath;
+                    // Obtén el nombre de la canción desde la ruta completa
+                    QString selectedSongName = QFileInfo(selectedSongPath).fileName();
 
             // Elimina la extensión ".mp3" del nombre de la canción usando QRegularExpression
             QRegularExpression re("\\.mp3$", QRegularExpression::CaseInsensitiveOption);
@@ -84,9 +110,7 @@ MainWindow::MainWindow(QWidget *parent)
             selectedSongName = QString::number(songID);
 
             // Imprime el nombre de la canción en la consola para verificarlo
-            qDebug() << "Nombre de la canción seleccionada: " << selectedSongName;
-
-                if (songData.contains(selectedSongName)) {
+            if (songData.contains(selectedSongName)) {
                 SongInfo songInfo = songData.value(selectedSongName);
                 QString artistName = songInfo.artist;
                 QString genre = songInfo.genre;
@@ -94,7 +118,27 @@ MainWindow::MainWindow(QWidget *parent)
                 // Ahora tienes el "artist_name" y el "genre" correspondientes al "track_id"
                 qDebug() << "Artista: " << artistName;
                 qDebug() << "Album: " << genre;
-            } else {
+
+                // Aquí concatenamos folderPath con los primeros 3 dígitos del nombre de la canción
+                if (selectedSongName.length()==3){
+                    selectedPathSong = folderPath + "/" +"000" +"/"+"000"+selectedSongName+".mp3";
+                    qDebug() << "selectedPathSong: " << selectedPathSong;
+                }else if(selectedSongName.length()==4){
+                    selectedPathSong = folderPath + "/" +"00"+selectedSongName.left(1) +"/"+"00"+selectedSongName+".mp3";
+                    qDebug() << "selectedPathSong: " << selectedPathSong;
+                }
+                else if(selectedSongName.length()==5){
+                    selectedPathSong = folderPath + "/" +"0"+selectedSongName.left(2) +"/"+"0"+selectedSongName+".mp3";
+                    qDebug() << "selectedPathSong: " << selectedPathSong;
+                }
+                else{
+                    qDebug() << "lenght: " << selectedSongName.length();
+                    selectedPathSong = folderPath + "/" + selectedSongName.left(3) +"/"+selectedSongName+".mp3";
+
+
+                // Ahora puedes usar selectedPathSong según tus necesidades
+                }}
+                else {
                 // No se encontró información para el "track_id" dado
                 qDebug() << "No se encontró información para el track_id: " << selectedSongName;
             }
@@ -213,11 +257,32 @@ MainWindow::MainWindow(QWidget *parent)
       // Agrega una etiqueta para mostrar el tiempo actual de reproducción
       currentTimeLabel = new QLabel("0:00", playerWidget);
       mainLayout->addWidget(currentTimeLabel, 3, 0, 1, 1);
-      currentTimeLabel->setText("hola");
+
       timer = new QTimer(this);
       connect(timer, &QTimer::timeout, this, &MainWindow::actualizarBarraProgreso);
 
+
+      QTimer *memoryUsageTimer = new QTimer(this);
+      connect(memoryUsageTimer, &QTimer::timeout, this, &MainWindow::actualizarMemoriaEnUso);
+      memoryUsageTimer->start(1000); // Actualiza cada segundo (puedes ajustar esto)
+      // Crea la etiqueta y agrégala al diseño
+      memoryUsageLabel = new QLabel("Memoria en uso: 0 MB", centralWidget);
+      mainLayout->addWidget(memoryUsageLabel, 4, 0, 1, 2); // Ajusta las coordenadas según tu diseño
+
 }
+void MainWindow::actualizarMemoriaEnUso()
+{
+      struct rusage usage;
+      getrusage(RUSAGE_SELF, &usage);
+
+      // Calcula la memoria en uso en megabytes
+      long long memoryInKilobytes = usage.ru_maxrss;
+      memoryUsage = memoryInKilobytes/2000; // Convierte de KB a MB
+
+      // Actualiza el texto de la etiqueta
+      memoryUsageLabel->setText("Memoria en uso: " + QString::number(memoryUsage) + " MB");
+}
+
 void MainWindow::cambiarPosicionReproduccion(int value) {
       // Calcula el nuevo tiempo en segundos basado en el valor de la barra de progreso
       double nuevaPosicionSegundos = value * reproductorMP3.obtenerDuracion() / 100;
@@ -248,6 +313,10 @@ void MainWindow::actualizarBarraProgreso() {
       qDebug() <<  tiempoActual;
       tiempoActual ++;
       // Actualiza la etiqueta de tiempo actual
+      if (tiempoActual>=duracionTotal){
+          tiempoActual=duracionTotal;
+          timer->stop();
+      }
       QString tiempoTotalStr = QString::fromStdString(formatTiempo(duracionTotal));
 
         qDebug() << "Tiempo actual de la cancion" << duracionTotal;
@@ -272,46 +341,77 @@ std::string MainWindow::formatTiempo(double tiempoSegundos) {
       return tiempoStr.toStdString();
 }
 
+QSet<QString> MainWindow::obtenerGenerosUnicos() {
+      QSet<QString> generosUnicos;
 
-void MainWindow::cargarDatosCSV() {
-    QFile file("/home/ulisesmz/Descargas/fma_metadata/raw_tracks.csv");
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
-        while (!in.atEnd()) {
-            QString line = in.readLine();
-            QStringList fields = line.split(",");
+      for (const SongInfo &songInfo : songData) {
+          generosUnicos.insert(songInfo.artist);
+      }
 
-            if (fields.size() >= 6) {
-                QString trackID = fields[0].trimmed();    // Columna "track_id"
-                QString albumID = fields[2].trimmed();    // Columna "album_id"
-                QString artist = fields[5].trimmed(); // Columna "album_title"
-
-                // Verifica que los campos no estén vacíos antes de agregarlos al mapa
-                if (!trackID.isEmpty() && !albumID.isEmpty() && !artist.isEmpty()) {
-                    // Verifica si trackID es un número
-                    bool isTrackIDNumeric;
-                    int trackIDValue = trackID.toInt(&isTrackIDNumeric);
-
-                    if (isTrackIDNumeric) {
-                        // trackID es un número válido
-                        // Crea un objeto que contenga "track_id", "album_id" y "album_title"
-                        SongInfo songInfo;
-                        songInfo.name = trackID;
-                        songInfo.artist = artist;
-                        songInfo.genre = albumID;
-
-                        // Agrega este objeto al mapa usando "track_id" como clave
-                        songData.insert(trackID, songInfo);
-                    } else {
-                        // trackID no es un número válido, puedes manejar esto según tus necesidades
-                    }
-                }
-            }
-        }
-        file.close();
-    }
+      return generosUnicos;
 }
 
+void MainWindow::cargarDatosCSV(const QString &folderPath) {
+      QStringList songFiles = getAllSongFiles(folderPath);
+      qDebug()<<"si entro";
+      QFile file("/home/ulisesmz/Descargas/fma_metadata/raw_tracks.csv");
+      if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+          QTextStream in(&file);
+          while (!in.atEnd()) {
+
+              QString line = in.readLine();
+              QStringList fields = line.split(",");
+
+              if (fields.size() >= 6) {
+
+                  QString trackID = fields[0].trimmed();
+                  QString albumID = fields[2].trimmed();
+                  QString artist = fields[5].trimmed();
+
+                  if (!trackID.isEmpty() && !albumID.isEmpty() && !artist.isEmpty()) {
+
+                      bool isTrackIDNumeric;
+                      int trackIDValue = trackID.toInt(&isTrackIDNumeric);
+
+                      if (isTrackIDNumeric) {
+
+                          qDebug()<<trackID.length();
+                          // Verifica si el archivo de la canción actual está en la lista de archivos de canciones
+                          if (trackID.length()==3){
+                              songFilePath = folderPath + "/" +"000"+"/"+"000"+ trackID + ".mp3";
+                          }
+                          else if(trackID.length()==4){
+                              songFilePath = folderPath + "/" +"00"+trackID.left(1)+"/"+"00"+trackID + ".mp3";
+                          }
+                          else if(trackID.length()==5){
+                              songFilePath = folderPath + "/" +"0"+trackID.left(2)+"/"+"0"+trackID + ".mp3";
+                          }
+                          else{
+                              songFilePath = folderPath + "/"+trackID.left(3)+"/"+trackID + ".mp3";
+                          }
+
+                          qDebug()<<songFilePath;
+                          if (songFiles.contains(songFilePath)) {
+                              qDebug()<<"si entro aqui";
+                              SongInfo songInfo;
+                              songInfo.name = trackID;
+                              songInfo.artist = artist;
+                              songInfo.genre = albumID;
+
+                              // Agrega esta canción al mapa utilizando el nombre del artista como clave
+                              artistSongs[artist].append(songInfo);
+
+                              // También, agrega esta canción al mapa songData utilizando el trackID como clave
+                              songData.insert(trackID, songInfo);
+                          }
+                      }
+                  }
+              }
+          }
+          file.close();
+      }
+}
 
 
 
@@ -346,9 +446,10 @@ void MainWindow::setSelectedSongPath(const QString &path) {
 }
 
 void MainWindow::cargarCancionSeleccionada() {
-    if (!selectedSongPath.isEmpty()) {
-        qDebug() << "Ruta holaaaaa: " << this->selectedSongPath;
-        const char *cFilePath = selectedSongPath.toUtf8().constData();
+    qDebug() << "Ruta holaaaaa: " << this->selectedPathSong;
+    if (!selectedPathSong.isEmpty()) {
+        qDebug() << "Ruta holaaaaa: " << this->selectedPathSong;
+        const char *cFilePath = selectedPathSong.toUtf8().constData();
         detenerReproduccion();
         tiempoActual =0;
         if (reproductorMP3.cargarCancion(cFilePath)) {
@@ -362,6 +463,7 @@ void MainWindow::cargarCancionSeleccionada() {
 
 void MainWindow::detenerReproduccion()
 {
+    reproductorMP3.pausar();
     timer->stop();
     reproductorMP3.detener();
 

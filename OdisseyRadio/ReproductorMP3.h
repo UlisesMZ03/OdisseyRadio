@@ -14,11 +14,13 @@ public:
     void pausar();
     void reanudar();
     void detener();
-    void adelantar(int segundos);
+
+    void reproducirDesdeSegundo(int segundo);
     double obtenerDuracionTotal();
     double obtenerDuracion();
 
 private:
+
     mpg123_handle* mh;
     SDL_AudioDeviceID audioDevice;
     bool enReproduccion; // Para mantener un seguimiento del estado de reproducción

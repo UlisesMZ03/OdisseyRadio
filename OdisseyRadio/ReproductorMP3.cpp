@@ -13,11 +13,11 @@ public:
     void reproducir();
     void pausar();
     void reanudar();
-    void adelantar(int segundos);
-    void atrasar(int segundos);
+
     double obtenerDuracion();
     double obtenerDuracionTotal();
     void detener();
+    void reproducirDesdeSegundo(int segundo);
 
 private:
     mpg123_handle* mh;
@@ -44,6 +44,30 @@ ReproductorMP3::~ReproductorMP3() {
     mpg123_exit();
     SDL_Quit();
 }
+
+// Agregar esta función para avanzar la reproducción a partir de un segundo específico
+void ReproductorMP3::reproducirDesdeSegundo(int segundo) {
+    unsigned char audio_buffer[4096];
+    size_t buffer_size;
+    double tiempoTranscurrido = 0.0;
+
+    // Leer y descartar los primeros 'segundo' segundos de audio
+    while (tiempoTranscurrido < segundo) {
+        if (mpg123_read(mh, audio_buffer, sizeof(audio_buffer), &buffer_size) == MPG123_OK) {
+            tiempoTranscurrido += static_cast<double>(buffer_size) / (44100.0 * 2 * 2);
+        } else {
+            break;
+        }
+    }
+
+    // Luego, reproducir normalmente
+    while (mpg123_read(mh, audio_buffer, sizeof(audio_buffer), &buffer_size) == MPG123_OK) {
+        if (!pausado) {
+            SDL_QueueAudio(audioDevice, audio_buffer, buffer_size);
+        }
+    }
+}
+
 
 bool ReproductorMP3::cargarCancion(const char* archivo) {
     if (mpg123_format_none(mh) != MPG123_OK ||
