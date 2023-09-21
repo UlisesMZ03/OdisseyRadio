@@ -21,6 +21,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    currentSongIndex = -1; // Inicialmente no hay ninguna canción seleccionada
+
     setWindowTitle("OdisseyRadio");
     setGeometry(100, 100, 800, 600);
     // Agrega un miembro de clase para almacenar la ruta de la canción seleccionada
@@ -63,7 +65,9 @@ MainWindow::MainWindow(QWidget *parent)
 // ...
     connect(rightListViewSongs, &QListWidget::itemSelectionChanged, this, [=]() {
         QListWidgetItem *selectedSongItem = rightListViewSongs->currentItem();
+
         if (selectedSongItem) {
+            currentSongIndex = rightListViewSongs->row(selectedSongItem);
             QString selectedSongPath = selectedSongItem->text();
 
             // Obtén el nombre de la canción desde la ruta completa
@@ -89,13 +93,14 @@ MainWindow::MainWindow(QWidget *parent)
 
                 // Ahora tienes el "artist_name" y el "genre" correspondientes al "track_id"
                 qDebug() << "Artista: " << artistName;
-                qDebug() << "Género: " << genre;
+                qDebug() << "Album: " << genre;
             } else {
                 // No se encontró información para el "track_id" dado
                 qDebug() << "No se encontró información para el track_id: " << selectedSongName;
             }
         }
     });
+
 
 
 
@@ -110,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
     playButton->setFlat(true);
     playButton->setCursor(Qt::PointingHandCursor);
 
-    connect(playButton, &QPushButton::clicked, this, &MainWindow::iniciarReproduccion);
+    connect(playButton, &QPushButton::clicked, this, &MainWindow::cargarCancionSeleccionada);
 
 
     QPushButton *pauseButton = new QPushButton(playerWidget);
@@ -156,12 +161,21 @@ MainWindow::MainWindow(QWidget *parent)
     playerLayout->addWidget(pauseButton);
     playerLayout->addWidget(nextButton);
 
-    // Agregar un botón para cargar una canción
-    QPushButton *loadSongButton = new QPushButton("Cargar Canción", centralWidget);
-    mainLayout->addWidget(loadSongButton, 2, 0, 1, 2);
+    connect(nextButton, &QPushButton::clicked, this, [=]() {
+        if (currentSongIndex < rightListViewSongs->count() - 1) {
+            currentSongIndex++;
+            rightListViewSongs->setCurrentRow(currentSongIndex);
+            cargarCancionSeleccionada(); // Llama a la función para cargar la canción seleccionada
+        }
+    });
+    connect(prevButton, &QPushButton::clicked, this, [=]() {
+        if (currentSongIndex < rightListViewSongs->count() - 1) {
+            currentSongIndex--;
+            rightListViewSongs->setCurrentRow(currentSongIndex);
+            cargarCancionSeleccionada(); // Llama a la función para cargar la canción seleccionada
+        }
+    });
 
-    // Conectar el botón para cargar una canción a una función
-    connect(loadSongButton, &QPushButton::clicked, this, &MainWindow::cargarCancion);
 
     connect(rightListViewSongs, &QListWidget::itemSelectionChanged, this, [=]() {
         QListWidgetItem *selectedSongItem = rightListViewSongs->currentItem();
@@ -185,26 +199,79 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    QPushButton *showInfoButton = new QPushButton("Mostrar Información Cargada", centralWidget);
-                                  mainLayout->addWidget(showInfoButton, 4, 0, 1, 2);
 
-    connect(showInfoButton, &QPushButton::clicked, this, &MainWindow::mostrarInformacionCargada);
+      // En el constructor de MainWindow, después de crear los botones:
+      progressSlider = new QSlider(Qt::Horizontal, playerWidget);
+      mainLayout->addWidget(progressSlider, 2, 0, 1, 2);
+
+      // Configura el rango de la barra de progreso (0 a 100)
+      progressSlider->setRange(0, 100);
+
+      // Conecta la señal valueChanged de la barra de progreso a un slot para controlar el avance o retroceso de la canción
+      connect(progressSlider, &QSlider::valueChanged, this, &MainWindow::cambiarPosicionReproduccion);
+
+      // Agrega una etiqueta para mostrar el tiempo actual de reproducción
+      currentTimeLabel = new QLabel("0:00", playerWidget);
+      mainLayout->addWidget(currentTimeLabel, 3, 0, 1, 1);
+      currentTimeLabel->setText("hola");
+      timer = new QTimer(this);
+      connect(timer, &QTimer::timeout, this, &MainWindow::actualizarBarraProgreso);
+
+}
+void MainWindow::cambiarPosicionReproduccion(int value) {
+      // Calcula el nuevo tiempo en segundos basado en el valor de la barra de progreso
+      double nuevaPosicionSegundos = value * reproductorMP3.obtenerDuracion() / 100;
+      tiempoActual = nuevaPosicionSegundos;
+      qDebug() <<nuevaPosicionSegundos ;
+      // Cambia la posición de reproducción en el reproductor
+      //reproductorMP3.adelantar(tiempoActual);
+}
+void MainWindow::iniciarReproduccion() {
+      reproductorMP3.reanudar();
+      reproductorMP3.reproducir();
+
+      // Configura un temporizador para actualizar la barra de progreso y el tiempo actual
 
 
-
-    // Agrega un botón o método para cargar la canción seleccionada en el reproductor
-    QPushButton *loadSelectedSongButton = new QPushButton("Cargar Canción Seleccionada", centralWidget);
-                                          mainLayout->addWidget(loadSelectedSongButton, 3, 0, 1, 2);
-
-    // Conecta el botón para cargar la canción seleccionada a una función
-    connect(loadSelectedSongButton, &QPushButton::clicked, this, &MainWindow::cargarCancionSeleccionada);
-
-
-
+      timer->start(1000);  // Actualiza cada segundo (puedes ajustar esto)
 
 
 
 }
+
+void MainWindow::actualizarBarraProgreso() {
+      // Obtén el tiempo actual de reproducción y la duración total
+
+      double duracionTotal = reproductorMP3.obtenerDuracion();
+      //double duracionTotal = reproductorMP3.obtenerDuracionTotal();
+
+      qDebug() <<  tiempoActual;
+      tiempoActual ++;
+      // Actualiza la etiqueta de tiempo actual
+      QString tiempoTotalStr = QString::fromStdString(formatTiempo(duracionTotal));
+
+        qDebug() << "Tiempo actual de la cancion" << duracionTotal;
+
+
+
+          //Calcula el valor para la barra de progreso (0-100)
+        int valorBarraProgreso = static_cast<int>((tiempoActual / duracionTotal) * 100);
+
+        progressSlider->setValue(valorBarraProgreso);
+        QString tiempoActualStr = QString::fromStdString(formatTiempo(tiempoActual));
+        currentTimeLabel -> setText(tiempoActualStr);
+
+
+}
+
+std::string MainWindow::formatTiempo(double tiempoSegundos) {
+      int minutos = static_cast<int>(tiempoSegundos / 60);
+      int segundos = static_cast<int>(tiempoSegundos) % 60;
+      QString tiempoStr = QString("%1:%2").arg(minutos, 2, 10, QChar('0')).arg(segundos, 2, 10, QChar('0'));
+
+      return tiempoStr.toStdString();
+}
+
 
 void MainWindow::cargarDatosCSV() {
     QFile file("/home/ulisesmz/Descargas/fma_metadata/raw_tracks.csv");
@@ -248,18 +315,6 @@ void MainWindow::cargarDatosCSV() {
 
 
 
-void MainWindow::mostrarInformacionCargada() {
-    // Itera a través del mapa songData y muestra la información de cada canción
-    for (const QString &trackID : songData.keys()) {
-        const SongInfo &songInfo = songData.value(trackID);
-
-        qDebug() << "Track ID: " << trackID;
-        qDebug() << "Artista: " << songInfo.artist;
-        qDebug() << "Género: " << songInfo.genre;
-                                  qDebug() << "---------------------";
-    }
-}
-
 
 QStringList MainWindow::getAllSongFiles(const QString &folderPath) {
     QDirIterator it(folderPath, QStringList() << "*.mp3", QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
@@ -294,24 +349,22 @@ void MainWindow::cargarCancionSeleccionada() {
     if (!selectedSongPath.isEmpty()) {
         qDebug() << "Ruta holaaaaa: " << this->selectedSongPath;
         const char *cFilePath = selectedSongPath.toUtf8().constData();
-
+        detenerReproduccion();
+        tiempoActual =0;
         if (reproductorMP3.cargarCancion(cFilePath)) {
             // La canción se cargó con éxito, ahora la reproducimos
+
             iniciarReproduccion();
         }
     }
 }
-void MainWindow::iniciarReproduccion()
-{
-    reproductorMP3.reanudar();
-    reproductorMP3.reproducir();
 
-}
 
 void MainWindow::detenerReproduccion()
 {
+    timer->stop();
     reproductorMP3.detener();
-    reproductorMP3.pausar();
+
 }
 
 

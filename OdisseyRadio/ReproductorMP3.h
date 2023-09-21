@@ -14,6 +14,9 @@ public:
     void pausar();
     void reanudar();
     void detener();
+    void adelantar(int segundos);
+    double obtenerDuracionTotal();
+    double obtenerDuracion();
 
 private:
     mpg123_handle* mh;

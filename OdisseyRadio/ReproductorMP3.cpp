@@ -15,7 +15,7 @@ public:
     void reanudar();
     void adelantar(int segundos);
     void atrasar(int segundos);
-    double obtenerTiempoActual();
+    double obtenerDuracion();
     double obtenerDuracionTotal();
     void detener();
 
@@ -23,6 +23,7 @@ private:
     mpg123_handle* mh;
     SDL_AudioDeviceID audioDevice;
     bool pausado;
+    double duracionCancion;
 };
 
 ReproductorMP3::ReproductorMP3() : pausado(false) {
@@ -80,39 +81,38 @@ bool ReproductorMP3::cargarCancion(const char* archivo) {
 void ReproductorMP3::reproducir() {
     unsigned char audio_buffer[4096];
     size_t buffer_size;
-    double tiempoActual = 0;
 
+    duracionCancion =0;
     while (mpg123_read(mh, audio_buffer, sizeof(audio_buffer), &buffer_size) == MPG123_OK) {
         if (!pausado) {
-            tiempoActual += static_cast<double>(buffer_size) / (44100.0 * 2 * 2); // Frecuencia * canales * bytes por muestra (16 bits)
+            duracionCancion += static_cast<double>(buffer_size) / (44100.0 * 2 * 2); // Frecuencia * canales * bytes por muestra (16 bits)
             SDL_QueueAudio(audioDevice, audio_buffer, buffer_size);
         }
     }
 }
 
 void ReproductorMP3::pausar() {
+    // Detener la lectura de audio desde el archivo MP3.
+
+
+    // Vaciar la cola de audio del dispositivo de audio.
+    SDL_ClearQueuedAudio(audioDevice);
+
+    // Pausar el dispositivo de audio.
+    SDL_PauseAudioDevice(audioDevice, 1);  // El segundo parámetro es 1 para pausar.
     pausado = true;
 }
+
 
 void ReproductorMP3::reanudar() {
     pausado = false;
 }
 
-void ReproductorMP3::adelantar(int segundos) {
-    double tiempoActual = obtenerTiempoActual();
-    double nuevoTiempo = tiempoActual + segundos;
-    if (nuevoTiempo < 0) nuevoTiempo = 0;
-    if (nuevoTiempo > obtenerDuracionTotal()) nuevoTiempo = obtenerDuracionTotal();
 
-    mpg123_seek(mh, nuevoTiempo, SEEK_SET);
-}
 
-void ReproductorMP3::atrasar(int segundos) {
-    adelantar(-segundos);
-}
 
-double ReproductorMP3::obtenerTiempoActual() {
-    return mpg123_tell(mh);
+double ReproductorMP3::obtenerDuracion() {
+    return duracionCancion;
 }
 
 double ReproductorMP3::obtenerDuracionTotal() {
@@ -120,10 +120,14 @@ double ReproductorMP3::obtenerDuracionTotal() {
 }
 
 void ReproductorMP3::detener() {
+    pausar();  // Pausa la reproducción (en caso de que esté reproduciendo).
+
+    // Limpia los recursos relacionados con la reproducción de MP3.
     SDL_CloseAudioDevice(audioDevice);
     mpg123_close(mh);
-    mpg123_delete(mh);
+
 }
+
 
 int reproductormp3(int argc, char* argv[]) {
     if (argc != 2) {
@@ -143,13 +147,13 @@ int reproductormp3(int argc, char* argv[]) {
         reproductor.reanudar();
         std::cout << "Reanudado" << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2)); // Reproduciendo durante 2 segundos (puedes ajustar esto).
-        reproductor.adelantar(10); // Adelanta 10 segundos (puedes ajustar esto).
+        //reproductor.adelantar(10); // Adelanta 10 segundos (puedes ajustar esto).
         std::cout << "Adelantando 10 segundos..." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        reproductor.atrasar(5); // Retrocede 5 segundos (puedes ajustar esto).
+        //reproductor.atrasar(5); // Retrocede 5 segundos (puedes ajustar esto).
         std::cout << "Retrocediendo 5 segundos..." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        std::cout << "Tiempo actual: " << reproductor.obtenerTiempoActual() << " segundos" << std::endl;
+        std::cout << "Tiempo actual: " << reproductor.obtenerDuracion() << " segundos" << std::endl;
         std::cout << "Duración total: " << reproductor.obtenerDuracionTotal() << " segundos" << std::endl;
                                                                                                     reproductor.detener();
     }
