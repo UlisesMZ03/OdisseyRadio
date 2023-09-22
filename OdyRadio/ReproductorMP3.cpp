@@ -153,34 +153,10 @@ void ReproductorMP3::detener() {
 }
 
 
-int reproductormp3(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Uso: " << argv[0] << " archivo.mp3" << std::endl;
-        return 1;
-    }
+int reproductormp3() {
+
 
     ReproductorMP3 reproductor;
-
-    if (reproductor.cargarCancion(argv[1])) {
-        reproductor.reproducir();
-        std::cout << "Reproduciendo..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3)); // Reproduce durante 3 segundos (puedes ajustar esto).
-        reproductor.pausar();
-        std::cout << "Pausado" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(2)); // Pausado durante 2 segundos (puedes ajustar esto).
-        reproductor.reanudar();
-        std::cout << "Reanudado" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(2)); // Reproduciendo durante 2 segundos (puedes ajustar esto).
-        //reproductor.adelantar(10); // Adelanta 10 segundos (puedes ajustar esto).
-        std::cout << "Adelantando 10 segundos..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        //reproductor.atrasar(5); // Retrocede 5 segundos (puedes ajustar esto).
-        std::cout << "Retrocediendo 5 segundos..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        std::cout << "Tiempo actual: " << reproductor.obtenerDuracion() << " segundos" << std::endl;
-        std::cout << "Duración total: " << reproductor.obtenerDuracionTotal() << " segundos" << std::endl;
-                                                                                                    reproductor.detener();
-    }
-
     return 0;
+
 }

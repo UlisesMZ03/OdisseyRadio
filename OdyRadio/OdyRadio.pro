@@ -1,10 +1,12 @@
 QT       += core gui
 
-
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
+# You can make your code fail to compile if it uses deprecated APIs.
+# In order to do so, uncomment the following line.
+#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 INCLUDEPATH += /usr/include/SFML
 LIBS += -lsfml-graphics -lsfml-window -lsfml-system
 LIBS += -lsfml-audio -lsfml-system
@@ -12,14 +14,6 @@ LIBS += -lSDL2 -lmpg123
 
 LIBS += -ltag
 INCLUDEPATH += /usr/include/taglib
-
-QT += widgets multimedia
-
-
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
 SOURCES += \
     ReproductorMP3.cpp \
     main.cpp \
